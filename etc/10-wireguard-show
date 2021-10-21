@@ -1,0 +1,2 @@
+ALL ALL=NOPASSWD: /usr/share/doc/wireguard-tools/examples/json/wg-json
+

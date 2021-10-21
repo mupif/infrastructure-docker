@@ -1,0 +1,15 @@
+{
+	"iface":"mp-test",
+	"net":"172.29.0.1/24",
+	"extAddr":"192.168.2.190",
+	"extPort":"51821",
+	"hubDir":"./generated",
+	"peerDir":"./generated/mp-test-peers",
+	"restart":0,
+	"peerMap":"./generated/mp-test-peers.json",
+	"peers":[
+		["p01","172.29.0.11"],
+		["p02","172.29.0.12"],
+		["p03","172.29.0.13"]
+	]
+}
