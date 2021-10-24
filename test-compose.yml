@@ -3,9 +3,9 @@ services:
    central:
       image: mupif
       build: .
-      # entrypoint: ["/sbin/init"]
-      expose: ['51821']
       cap_add: # for wireguard
       - NET_ADMIN
       volumes:
       - ./persistent:/var/lib/mupif/persistent
+      ports:
+      - 51821:51821
