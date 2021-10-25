@@ -2,12 +2,12 @@ FROM ubuntu:20.04
 LABEL maintainer="vaclav.smilauer@fsv.cvut.cz"
 LABEL version="0.1"
 LABEL description="MuPIF infrastructure (VPN, Pyro nameserver, MupifDB, web monitor)"
-# build-time configuration
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get -y install python3-numpy python3-scipy python3-nose python3-h5py python3-matplotlib python3-pip wireguard-tools iproute2 iputils-ping git mongodb libgeoip-dev mc vim-nox supervisor sudo wget && apt-get clean
+# build-time configuration (after the big apt-get download so that it is cached across variants)
 ARG MUPIF_BRANCH=master
 ARG MUPIF_VPN_NAME=mp-test
-ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update
-RUN apt-get -y install python3-numpy python3-scipy python3-nose python3-h5py python3-matplotlib python3-pip wireguard-tools iproute2 iputils-ping git mongodb libgeoip-dev mc vim-nox supervisor sudo wget
+# end build-time configuration
 ENV MUPIF_MONITOR_DIR=/var/lib/mupif/monitor
 ENV MUPIF_DB_DIR=/var/lib/mupif/mupifDB
 ENV MUPIF_NS_DIR=/var/lib/mupif/nameserver
