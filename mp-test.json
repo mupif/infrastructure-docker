@@ -3,7 +3,7 @@
 	"net":"172.29.0.1/24",
 	"extAddr":"192.168.2.190",
 	"extPort":"51821",
-	"hubDir":"./persistent/etc_wireguard",
+	"hubDir":"./persistent/",
 	"peerDir":"./mp-test-peers",
 	"restart":0,
 	"peerMap":"./persistent/mp-test-peers.json",

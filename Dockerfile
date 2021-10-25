@@ -4,6 +4,7 @@ LABEL version="0.1"
 LABEL description="MuPIF infrastructure (VPN, Pyro nameserver, MupifDB, web monitor)"
 # build-time configuration
 ARG MUPIF_BRANCH=master
+ARG MUPIF_VPN_NAME=mp-test
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update
 RUN apt-get -y install python3-numpy python3-scipy python3-nose python3-h5py python3-matplotlib python3-pip wireguard-tools iproute2 iputils-ping git mongodb libgeoip-dev mc vim-nox supervisor sudo wget
@@ -27,6 +28,8 @@ RUN pip3 install -r ${MUPIF_MONITOR_DIR}/requirements.txt
 # declare all services run
 # they all use 0.0.0.0 for interface IP, thus will bind to all interfaces within the container
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+# make MUPIF_VPN_NAME available to supervisor
+ENV MUPIF_VPN_NAME=$MUPIF_VPN_NAME
 CMD ["/usr/bin/supervisord"]
 # allow to run wireguard config from the unprivileged mnonitor via sudo
 # the file under /etc/sudoers.d must NOT contain ., otherwise is ignored (!!) (https://superuser.com/a/869145/121677)
@@ -34,4 +37,4 @@ ADD etc/10-wireguard-show /etc/sudoers.d/
 # /usr/share/doc/ content removed from the original image, use local version
 # RUN wget https://raw.githubusercontent.com/WireGuard/wireguard-tools/master/contrib/json/wg-json -O wg-json && chmod a+x wg-json && mv wg-json /usr/share/doc/wireguard-tools/examples/json/wg-json
 COPY wg-json_DOWNLOADED /usr/share/doc/wireguard-tools/examples/json/wg-json
-RUN rm -rf /etc/wireguard; ln -s ${MUPIF_PERSIST_DIR}/etc_wireguard /etc/wireguard
+# RUN rm -rf /etc/wireguard; ln -s ${MUPIF_PERSIST_DIR}/etc_wireguard /etc/wireguard

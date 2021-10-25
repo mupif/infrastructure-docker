@@ -2,7 +2,12 @@ version: "3.3"
 services:
    central:
       image: mupif
-      build: .
+      build:
+         context: .
+         dockerfile: Dockerfile
+         args:
+            MUPIF_VPN_NAME: mp-test
+            MUPIF_BRANCH: master
       cap_add: # for wireguard
       - NET_ADMIN
       volumes:
