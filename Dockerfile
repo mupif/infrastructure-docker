@@ -6,6 +6,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get -y install python3-numpy python3-scipy python3-nose python3-h5py python3-matplotlib python3-pip wireguard-tools iproute2 iputils-ping git mongodb libgeoip-dev mc vim-nox supervisor sudo wget && apt-get clean
 # build-time configuration (after the big apt-get download so that it is cached across variants)
 ARG MUPIF_BRANCH=master
+ARG MUPIFDB_BRANCH=Musicode
 ARG MUPIF_VPN_NAME=mp-test
 # end build-time configuration
 ENV MUPIF_MONITOR_DIR=/var/lib/mupif/monitor
@@ -18,8 +19,8 @@ RUN useradd -m mupif && echo "mupif:mupif" | chpasswd
 RUN pip3 install git+https://github.com/irmen/Pyro5.git@55bec91891bb9007441024186f3c62b06a3a6870
 # install mupif from git (MUPIF_BRANCH latest)
 RUN pip3 install git+https://github.com/mupif/mupif.git@${MUPIF_BRANCH}
-# install MupifDB from git (master latest)
-RUN git clone --branch master https://github.com/mupif/MupifDB.git ${MUPIF_DB_DIR}
+# install MupifDB from git (Musicode latest)
+RUN git clone --branch ${MUPIFDB_BRANCH} https://github.com/mupif/MupifDB.git ${MUPIF_DB_DIR}
 RUN pip3 install -r ${MUPIF_DB_DIR}/requirements.txt
 # clone mupif monitor from git (master latest)
 RUN git  clone --branch Musicode https://github.com/mupif/mupif-openvpn-monitor.git ${MUPIF_MONITOR_DIR}
@@ -37,4 +38,3 @@ ADD etc/10-wireguard-show /etc/sudoers.d/
 # /usr/share/doc/ content removed from the original image, use local version
 # RUN wget https://raw.githubusercontent.com/WireGuard/wireguard-tools/master/contrib/json/wg-json -O wg-json && chmod a+x wg-json && mv wg-json /usr/share/doc/wireguard-tools/examples/json/wg-json
 COPY wg-json_DOWNLOADED /usr/share/doc/wireguard-tools/examples/json/wg-json
-# RUN rm -rf /etc/wireguard; ln -s ${MUPIF_PERSIST_DIR}/etc_wireguard /etc/wireguard
