@@ -23,10 +23,12 @@ python3 wireguard-generator/easier-wg-quick.py -c mp-test.json
 
 ### Persistent storage
 
-The `persistent` directory (which can be mounted from anywhere) *must* contain the following:
+The `persistent` directory (which can be mounted from anywhere) *must* be writable to everybody (`chmod a+rw persistent`) so that non-root processes inside the container may modify it, and it must contain the following configuration files:
 
 * `[vpn-name].conf`; this file should *not* contain `iptables` (in `PostUp` and similar) since there is no iptables in the container installed;
-* `monitor-vpn.conf`, `monitor-mupif.conf` and `[vpn-name]-peers.json` (exact file name is specified in `monitor-vpn.conf`
+* `monitor-vpn.conf`, `monitor-mupif.conf` and `[vpn-name]-peers.json` (exact file name is specified in `monitor-vpn.conf`.
+
+In addition, `mongodb` directory and `nameserver.sqlite` storage will be create by services inside the container automatically.
 
 ## Testing
 
