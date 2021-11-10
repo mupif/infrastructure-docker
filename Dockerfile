@@ -3,18 +3,20 @@ LABEL maintainer="vaclav.smilauer@fsv.cvut.cz"
 LABEL version="0.1"
 LABEL description="MuPIF infrastructure (VPN, Pyro nameserver, MupifDB, web monitor)"
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get -y install python3-numpy python3-scipy python3-nose python3-h5py python3-matplotlib python3-pip wireguard-tools iproute2 iputils-ping git mongodb libgeoip-dev mc vim-nox supervisor sudo wget && apt-get clean
+RUN mkdir /etc/update-initramfs; echo 'update_initramfs=no' > /etc/update-initramfs/update-initramfs.conf
+RUN apt-get update && apt-get -y install python3-numpy python3-scipy python3-nose python3-h5py python3-matplotlib python3-pip wireguard-tools iproute2 iputils-ping git mongodb libgeoip-dev mc vim-nox supervisor sudo wget cron openssh-server rsyslog && apt-get clean && pip3 install supervisor-console
 # build-time configuration (after the big apt-get download so that it is cached across variants)
 ARG MUPIF_BRANCH=master
 ARG MUPIFDB_BRANCH=Musicode
 ARG MUPIF_VPN_NAME=mp-test
 # end build-time configuration
-ENV MUPIF_MONITOR_DIR=/var/lib/mupif/monitor
-ENV MUPIF_DB_DIR=/var/lib/mupif/mupifDB
-ENV MUPIF_NS_DIR=/var/lib/mupif/nameserver
-ENV MUPIF_PERSIST_DIR=/var/lib/mupif/persistent
-RUN useradd -m mupif && echo "mupif:mupif" | chpasswd
-# && adduser mupif sudo
+ENV MUPIF_HOME_DIR=/var/lib/mupif
+ENV MUPIF_MONITOR_DIR=${MUPIF_HOME_DIR}/monitor
+ENV MUPIF_DB_DIR=${MUPIF_HOME_DIR}/mupifDB
+ENV MUPIF_NS_DIR=${MUPIF_HOME_DIR}/nameserver
+ENV MUPIF_PERSIST_DIR=${MUPIF_HOME_DIR}/persistent
+RUN useradd --create-home --home-dir ${MUPIF_HOME_DIR} --system mupif && echo "mupif:mupif" | chpasswd
+RUN mkdir -p ${MUPIF_HOME_DIR} && chown mupif: -R ${MUPIF_HOME_DIR}
 # install Pyro5 from git (this specific commit)
 RUN pip3 install git+https://github.com/irmen/Pyro5.git@55bec91891bb9007441024186f3c62b06a3a6870
 # install mupif from git (MUPIF_BRANCH latest)
@@ -28,7 +30,7 @@ RUN git  clone --branch Musicode https://github.com/mupif/mupif-openvpn-monitor.
 RUN pip3 install -r ${MUPIF_MONITOR_DIR}/requirements.txt
 # declare all services run
 # they all use 0.0.0.0 for interface IP, thus will bind to all interfaces within the container
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY supervisor-mupif.conf /etc/supervisor/conf.d/mupif.conf
 # make MUPIF_VPN_NAME available to supervisor
 ENV MUPIF_VPN_NAME=$MUPIF_VPN_NAME
 CMD ["/usr/bin/supervisord"]

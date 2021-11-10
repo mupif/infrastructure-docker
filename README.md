@@ -32,8 +32,10 @@ In addition, `mongodb` directory and `nameserver.sqlite` storage will be create 
 
 ## Testing
 
-Run `make` to build the container and bring it up.
+* Run `make` to build the container and bring it up in foreground.
+* Run `make refresh` to rebuild the container from scratch (such as to pull new version from git)
+* Run `make join` to enter the shell of a running container (name of the container must be adjusted)
 
 ## Deployment
 
-See [this gist](https://gist.github.com/mosquito/b23e1c1e5723a7fd9e6568e5cf91180f) showing how to add a docker-compose image as systemd service (not yet tested).
+Symlink `mupif@.service` to `/etc/systemd/system`, run `systemctl daemon-reload` and `systemctl start mupif@your-vpn`. Use `journalctl -u mupif@your-vpn -f` to see the output.
