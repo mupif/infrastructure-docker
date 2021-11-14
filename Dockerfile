@@ -4,7 +4,7 @@ LABEL version="0.1"
 LABEL description="MuPIF infrastructure (VPN, Pyro nameserver, MupifDB, web monitor)"
 ENV DEBIAN_FRONTEND=noninteractive
 RUN mkdir /etc/update-initramfs; echo 'update_initramfs=no' > /etc/update-initramfs/update-initramfs.conf
-RUN apt-get update && apt-get -y install python3-numpy python3-scipy python3-nose python3-h5py python3-matplotlib python3-pip wireguard-tools iproute2 iputils-ping git mongodb libgeoip-dev mc vim-nox supervisor sudo wget cron openssh-server rsyslog xtail && apt-get clean && pip3 install supervisor-console
+RUN apt-get update && apt-get -y install python3-numpy python3-scipy python3-nose python3-h5py python3-matplotlib python3-pip wireguard-tools iproute2 iputils-ping git mongodb libgeoip-dev mc vim-nox supervisor sudo wget cron openssh-server rsyslog xtail && apt-get clean
 # build-time configuration (after the big apt-get download so that it is cached across variants)
 ARG MUPIF_BRANCH=master
 ARG MUPIFDB_BRANCH=Musicode
@@ -31,6 +31,7 @@ RUN pip3 install -r ${MUPIF_MONITOR_DIR}/requirements.txt
 # declare all services run
 # they all use 0.0.0.0 for interface IP, thus will bind to all interfaces within the container
 COPY supervisor-mupif.conf /etc/supervisor/conf.d/mupif.conf
+COPY supervisor-mupifdb-${MUPIFDB_BRANCH}.conf /etc/supervisor/conf.d/mupifdb.conf
 # make MUPIF_VPN_NAME available to supervisor
 ENV MUPIF_VPN_NAME=$MUPIF_VPN_NAME
 ENV MUPIF_PERSISTENT=/var/lib/mupif/persistent
