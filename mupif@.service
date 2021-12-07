@@ -8,7 +8,9 @@ After=docker.service
 [Service]
 # Type=oneshot
 Type=simple
-RemainAfterExit=True
+RemainAfterExit=False
+Restart=always
+RestartSec=3
 WorkingDirectory=/root/mupif-networks/%i
 ExecStart=/usr/bin/docker-compose -f container.yml up --build --remove-orphans
 # ExecStop=/usr/bin/docker-compose -f container.yml down
