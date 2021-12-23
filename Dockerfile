@@ -5,16 +5,27 @@ LABEL description="MuPIF infrastructure (VPN, Pyro nameserver, MupifDB, web moni
 ENV DEBIAN_FRONTEND=noninteractive
 RUN mkdir /etc/update-initramfs; echo 'update_initramfs=no' > /etc/update-initramfs/update-initramfs.conf
 RUN apt-get update && apt-get -y install python3-pip wireguard-tools iproute2 iputils-ping git mongodb libgeoip-dev mc vim-nox supervisor sudo wget cron openssh-server rsyslog xtail && apt-get clean
+
 # build-time configuration (after the big apt-get download so that it is cached across variants)
 ARG MUPIF_BRANCH=master
 ARG MUPIFDB_BRANCH=Musicode
 ARG MUPIF_VPN_NAME=mp-test
+ARG MUPIF_NS_HOST
+ARG MUPIF_NS_PORT
 # end build-time configuration
+
+# make sure MUPIF_NS_HOST and MUPIF_NS_PORT were specified (their default is empty)
+RUN test -n "$MUPIF_NS_HOST"
+RUN test -n "$MUPIF_NS_PORT"
 ENV MUPIF_HOME_DIR=/var/lib/mupif
 ENV MUPIF_MONITOR_DIR=${MUPIF_HOME_DIR}/monitor
 ENV MUPIF_DB_DIR=${MUPIF_HOME_DIR}/mupifDB
+ENV MUPIF_GIT_DIR=${MUPIF_HOME_DIR}/mupif-git
 ENV MUPIF_NS_DIR=${MUPIF_HOME_DIR}/nameserver
 ENV MUPIF_PERSIST_DIR=${MUPIF_HOME_DIR}/persistent
+ENV MUPIF_NS_HOST=${MUPIF_NS_HOST}
+ENV MUPIF_NS_PORT=${MUPIF_NS_PORT}
+ENV MUPIF_NS=${MUPIF_NS_HOST}:${MUPIF_NS_PORT}
 RUN useradd --create-home --home-dir ${MUPIF_HOME_DIR} --system mupif && echo "mupif:mupif" | chpasswd
 RUN mkdir -p ${MUPIF_HOME_DIR} && chown mupif: -R ${MUPIF_HOME_DIR}
 RUN pip3 install 'numpy>=1.20'
@@ -22,6 +33,7 @@ RUN pip3 install 'numpy>=1.20'
 RUN pip3 install --upgrade git+https://github.com/irmen/Pyro5.git@55bec91891bb9007441024186f3c62b06a3a6870
 # install mupif from git (MUPIF_BRANCH latest)
 RUN pip3 install --upgrade git+https://github.com/mupif/mupif.git@${MUPIF_BRANCH}
+RUN git clone --branch ${MUPIF_BRANCH} https://github.com/mupif/mupif.git ${MUPIF_GIT_DIR}
 # install MupifDB from git (Musicode latest)
 RUN git clone --branch ${MUPIFDB_BRANCH} https://github.com/mupif/MupifDB.git ${MUPIF_DB_DIR}
 RUN pip3 install --upgrade -r ${MUPIF_DB_DIR}/requirements.txt
@@ -29,6 +41,8 @@ RUN pip3 install --upgrade -r ${MUPIF_DB_DIR}/requirements.txt
 RUN git  clone --branch Musicode https://github.com/mupif/mupif-openvpn-monitor.git ${MUPIF_MONITOR_DIR}
 # COPY mupif-monitor ${MUPIF_MONITOR_DIR}
 RUN pip3 install --upgrade -r ${MUPIF_MONITOR_DIR}/requirements.txt
+# install mupif once more as various pip3 install --upgrade might have fetched another version from pypi
+RUN pip3 install --upgrade git+https://github.com/mupif/mupif.git@${MUPIF_BRANCH}
 # declare all services run
 # they all use 0.0.0.0 for interface IP, thus will bind to all interfaces within the container
 COPY supervisor-mupif.conf /etc/supervisor/conf.d/mupif.conf
