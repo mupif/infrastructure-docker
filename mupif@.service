@@ -13,6 +13,8 @@ Restart=always
 RestartSec=3
 WorkingDirectory=/root/mupif-networks/%i
 ExecStart=/usr/bin/docker-compose -f container.yml up --build --remove-orphans
+# ExecStart=/usr/local/bin/podman-compose -f container.yml --podman-run-args="--replace=true" up --build --remove-orphans
+
 # ExecStop=/usr/bin/docker-compose -f container.yml down
 # StandardOutput=journal+console
 # StandardError=journal+console
