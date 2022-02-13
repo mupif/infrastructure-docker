@@ -1,0 +1,12 @@
+#!/bin/bash
+set -e -x
+main(){
+        git -C /var/lib/mupif/mupif-git pull --ff
+        git -C /var/lib/mupif/mupifDB pull --ff
+        supervisorctl restart ex13 mupifdb-REST mupifdb-web
+	sleep 2
+        supervisorctl restart mupifdb-scheduler
+	sleep 3
+        supervisorctl status
+}
+main | ccze -A

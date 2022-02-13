@@ -3,7 +3,7 @@ LABEL maintainer="vaclav.smilauer@fsv.cvut.cz"
 LABEL version="0.2"
 LABEL description="MuPIF infrastructure (VPN, Pyro nameserver, MupifDB, web monitor)"
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get -y install python3-pip wireguard-tools iproute2 iputils-ping git libgeoip-dev mc vim-nox supervisor sudo wget cron openssh-server rsyslog xtail munin-node tmux gnupg && apt-get clean
+RUN apt-get update && apt-get -y install python3-pip wireguard-tools iproute2 iputils-ping git libgeoip-dev mc vim-nox supervisor sudo wget cron openssh-server rsyslog xtail munin-node tmux gnupg ccze && apt-get clean
 
 # # MongoDB (upstream repo, not packaged for Debian)
 RUN wget -qO - https://www.mongodb.org/static/pgp/server-5.0.asc | sudo apt-key add - && echo "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/5.0 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-5.0.list && apt-get update && apt-get -y install mongodb-org && apt-get clean
@@ -41,18 +41,17 @@ RUN mkdir -p ${MUPIF_HOME_DIR} && chown mupif: -R ${MUPIF_HOME_DIR}
 RUN pip3 install 'numpy>=1.20'
 # install Pyro5 from git (this specific commit)
 RUN pip3 install --upgrade git+https://github.com/irmen/Pyro5.git@55bec91891bb9007441024186f3c62b06a3a6870
-# install mupif from git (MUPIF_BRANCH latest)
-RUN pip3 install --upgrade git+https://github.com/mupif/mupif.git@${MUPIF_BRANCH}
+# clone mupif and mupifDB
 RUN git clone --branch ${MUPIF_BRANCH} https://github.com/mupif/mupif.git ${MUPIF_GIT_DIR}
-# install MupifDB from git (Musicode latest)
 RUN git clone --branch ${MUPIFDB_BRANCH} https://github.com/mupif/MupifDB.git ${MUPIF_DB_DIR}
-RUN pip3 install --upgrade -r ${MUPIF_DB_DIR}/requirements.txt
+# install mupif as editable (so that git pull inside container updates mupif automatically)
+RUN pip3 install -e ${MUPIF_GIT_DIR}
+# install mupifDB depenencies (mupifDB is run from the repo directory, no need to install)
+RUN pip3 install -r ${MUPIF_DB_DIR}/requirements.txt
 # clone mupif monitor from git (master latest)
 RUN git  clone --branch master https://github.com/mupif/mupif-openvpn-monitor.git ${MUPIF_MONITOR_DIR}
 # COPY mupif-monitor ${MUPIF_MONITOR_DIR}
 RUN pip3 install --upgrade -r ${MUPIF_MONITOR_DIR}/requirements.txt
-# install mupif once more as various pip3 install --upgrade might have fetched another version from pypi
-RUN cd ${MUPIF_GIT_DIR}; python3 ${MUPIF_GIT_DIR}/setup.py install
 # declare all services run
 # they all use 0.0.0.0 for interface IP, thus will bind to all interfaces within the container
 COPY supervisor-mupif.conf /etc/supervisor/conf.d/mupif.conf
@@ -67,10 +66,10 @@ ADD etc/10-wireguard-show /etc/sudoers.d/
 # /usr/share/doc/ content removed from the original image, use local version
 # RUN wget https://raw.githubusercontent.com/WireGuard/wireguard-tools/master/contrib/json/wg-json -O wg-json && chmod a+x wg-json && mv wg-json /usr/share/doc/wireguard-tools/examples/json/wg-json
 COPY wg-json_DOWNLOADED /usr/share/doc/wireguard-tools/examples/json/wg-json
-
 ##
 ## other
 ##
 # make administration easier
 COPY etc/tmux.conf /etc/tmux.conf
 COPY etc/munin-node.conf /etc/munin/munin-node.conf
+COPY update-mupif /usr/local/bin/update-mupif
