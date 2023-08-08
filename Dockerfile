@@ -1,6 +1,6 @@
-FROM debian:bullseye-20211220
+FROM debian:bookworm-20230725
 LABEL maintainer="vaclav.smilauer@fsv.cvut.cz"
-LABEL version="0.2"
+LABEL version="0.3"
 LABEL description="MuPIF infrastructure (VPN, Pyro nameserver, MupifDB, web monitor)"
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get -y install python3-pip wireguard-tools iproute2 iputils-ping git libgeoip-dev mc vim-nox supervisor sudo wget cron openssh-server rsyslog xtail munin-node tmux gnupg ccze && apt-get clean
