@@ -3,10 +3,13 @@ LABEL maintainer="vaclav.smilauer@fsv.cvut.cz"
 LABEL version="0.2"
 LABEL description="MuPIF infrastructure (VPN, Pyro nameserver, MupifDB, web monitor)"
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get -y install python3-pip wireguard-tools iproute2 iputils-ping git libgeoip-dev mc vim-nox supervisor sudo wget cron openssh-server rsyslog xtail munin-node tmux gnupg ccze && apt-get clean
+RUN apt-get update && apt-get -y install python3-pip wireguard-tools iproute2 iputils-ping git libgeoip-dev mc ripgrep vim-nox supervisor sudo wget cron openssh-server rsyslog xtail munin-node tmux gnupg ccze htop libjson-c-dev libwebsockets-dev cmake build-essential && apt-get clean
 
 # # MongoDB (upstream repo, not packaged for Debian)
 RUN wget -qO - https://www.mongodb.org/static/pgp/server-5.0.asc | sudo apt-key add - && echo "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/5.0 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-5.0.list && apt-get update && apt-get -y install mongodb-org && apt-get clean
+## build and install ttyd
+RUN cd /tmp && git clone https://github.com/tsl0922/ttyd.git && mkdir ttyd/build && cd ttyd/build && cmake .. && make install
+
 
 # build-time configuration (after the big apt-get download so that it is cached across variants)
 ARG MUPIF_BRANCH=master
@@ -33,12 +36,14 @@ ENV MUPIF_NS_PORT=${MUPIF_NS_PORT}
 ENV MUPIF_NS=${MUPIF_NS_HOST}:${MUPIF_NS_PORT}
 ENV INADDR_ANY=${INADDR_ANY}
 ENV INADDR_ANY_WITH_PORT=${INADDR_ANY_WITH_PORT}
+# can be mupif or granta (musicode)
+ENV MUPIFDB_REST_SERVER_TYPE=mupif
 ##
 ## mupif
 ##
 RUN useradd --create-home --home-dir ${MUPIF_HOME_DIR} --system mupif && echo "mupif:mupif" | chpasswd
 RUN mkdir -p ${MUPIF_HOME_DIR} && chown mupif: -R ${MUPIF_HOME_DIR}
-RUN pip3 install 'numpy>=1.20'
+RUN pip3 install 'numpy>=1.20' 'scipy==1.8.0'
 # install Pyro5 from git (this specific commit)
 RUN pip3 install --upgrade git+https://github.com/irmen/Pyro5.git@55bec91891bb9007441024186f3c62b06a3a6870
 # clone mupif and mupifDB
@@ -46,7 +51,8 @@ RUN git clone --branch ${MUPIF_BRANCH} https://github.com/mupif/mupif.git ${MUPI
 RUN git clone --branch ${MUPIFDB_BRANCH} https://github.com/mupif/MupifDB.git ${MUPIF_DB_DIR}
 # install mupif as editable (so that git pull inside container updates mupif automatically)
 RUN pip3 install -e ${MUPIF_GIT_DIR}
-# install mupifDB depenencies (mupifDB is run from the repo directory, no need to install)
+# install mupif and mupifDB depenencies (mupifDB is run from the repo directory, no need to install)
+RUN pip3 install -r ${MUPIF_GIT_DIR}/requirements.txt
 RUN pip3 install -r ${MUPIF_DB_DIR}/requirements.txt
 # clone mupif monitor from git (master latest)
 RUN git  clone --branch master https://github.com/mupif/mupif-openvpn-monitor.git ${MUPIF_MONITOR_DIR}

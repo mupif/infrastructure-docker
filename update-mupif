@@ -1,9 +1,11 @@
 #!/bin/bash
 set -e -x
 main(){
-        git -C /var/lib/mupif/mupif-git pull --ff
-        git -C /var/lib/mupif/mupifDB pull --ff
-        supervisorctl restart ex13 mupifdb-REST mupifdb-web
+	for d in /var/lib/mupif/{mupif-git,mupifDB,monitor}; do
+	    git -C $d pull --ff
+	    python3 -m pip install -r $d/requirements.txt
+	done
+        supervisorctl restart ex13 mupifdb-REST mupifdb-web mupifdb-fastapi mupif-monitor
 	sleep 2
         supervisorctl restart mupifdb-scheduler
 	sleep 3
