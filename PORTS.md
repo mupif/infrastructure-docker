@@ -13,6 +13,7 @@ These are the ports the services think they run on (inside the container); the a
 - 8001: scheduler monitor (ttyd-based)
 - 10000: nameserver
 - 27017: MongoDB (where applicable)
+- 5182?: wireguard (see below)
 
 The Munin container (which monitors all others) exposes port `80` (for Munin web interface).
 
@@ -27,6 +28,8 @@ Internal docker ports are exposed to localhost ports (at mech, but only accessib
 
 - Munin container only: 80 → 8888 (Munin web interface)
 
+- Wireguard has the same port `5182?` number inside and outside (for historical reasons), and the network index is unfortunatley +1 than the above (1: musicode, 2: deema, 3: test, 4: sumo, 5: test6, 6: tinnit).
+
 Proxies
 ========
 
@@ -39,5 +42,3 @@ Some exposed container ports are made available to the world via reverse proxies
 Munin container is accessible as:
 
 - `munin`: 8888 (Munin web interface)
-
-
