@@ -19,7 +19,7 @@ The Munin container (which monitors all others) exposes port `80` (for Munin web
 External container ports
 =========================
 
-Internal docker ports are exposed to localhost ports (at mech, but only accessible locally); they are mapped for each network diferently, to avoid collisions, as specified in their respective `container.yml`. `?` stands for network index (0: musicode, 1: deema, 2: test,  3: sumo, 4: test6). 
+Internal docker ports are exposed to localhost ports (at mech, but only accessible locally); they are mapped for each network diferently, to avoid collisions, as specified in their respective `container.yml`. `?` stands for network index (0: musicode, 1: deema, 2: test,  3: sumo, 4: test6, 5: tinnit). 
 
 - 8000 → 800? (old static monitor)
 - 4000 → 805? (new Quarar-based monitor)
