@@ -36,6 +36,7 @@ Internal docker ports are exposed to localhost ports (at mech, but only accessib
 - 8000 → 800? (old static monitor)
 - 4000 → 805? (new Quarar-based monitor)
 - 8006 → 804? ("safe" REST API)
+- 80 → 808? (HTTP proxy)
 
 - Munin container only: 80 → 8888 (Munin web interface)
 
