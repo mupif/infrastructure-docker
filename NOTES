@@ -1,0 +1,5 @@
+a2enmod proxy_html
+a2enmod headers
+a2enmod proxy_http # !!
+run as apachectl -D FOREGROUND
+http://www.apachetutor.org/admin/reverseproxies

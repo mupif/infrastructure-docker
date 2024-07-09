@@ -3,15 +3,15 @@ LABEL maintainer="vaclav.smilauer@fsv.cvut.cz"
 LABEL version="0.3"
 LABEL description="MuPIF infrastructure (VPN, Pyro nameserver, MupifDB, web monitor)"
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get -y install python3-pip wireguard-tools iproute2 iputils-ping git libgeoip-dev mc ripgrep vim-nox supervisor sudo wget cron openssh-server rsyslog xtail munin-node tmux gnupg ccze htop libjson-c-dev libwebsockets-dev cmake build-essential && apt-get clean
+RUN apt-get update && apt-get -y install python3-pip wireguard-tools iproute2 iputils-ping git libgeoip-dev mc ripgrep vim-nox supervisor sudo wget cron openssh-server rsyslog xtail apache2 munin-node tmux gnupg curl ca-certificates ccze htop libjson-c-dev libwebsockets-dev cmake build-essential && apt-get clean
 
 # # MongoDB (upstream repo, not packaged for Debian)
 RUN wget http://security.debian.org/debian-security/pool/updates/main/o/openssl/libssl1.1_1.1.1n-0+deb11u5_amd64.deb && dpkg -i libssl1.1_1.1.1n*.deb && wget -qO - https://www.mongodb.org/static/pgp/server-5.0.asc | sudo apt-key add - && echo "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/5.0 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-5.0.list && apt-get update && apt-get -y install mongodb-org && apt-get clean
 ## build and install ttyd
 RUN cd /tmp && git clone https://github.com/tsl0922/ttyd.git && mkdir ttyd/build && cd ttyd/build && cmake .. && make install
 ## Node
-RUN wget -O - https://deb.nodesource.com/setup_14.x | sudo -E bash - ; apt install -y nodejs npm
-
+# RUN wget -O - https://deb.nodesource.com/setup_18.x | sudo -E bash - ; apt install -y nodejs npm
+RUN mkdir -p /etc/apt/keyrings; curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg; export NODE_MAJOR=18; echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list; apt-get -y install nodejs npm && apt-get clean
 
 # build-time configuration (after the big apt-get download so that it is cached across variants)
 ARG MUPIF_BRANCH=master
@@ -47,6 +47,8 @@ ENV PIP_BREAK_SYSTEM_PACKAGES=1
 ## mupif
 ##
 RUN useradd --create-home --home-dir ${MUPIF_HOME_DIR} --system mupif && echo "mupif:mupif" | chpasswd
+COPY apache2.conf ${MUPIF_HOME_DIR}/apache2.conf
+COPY www ${MUPIF_HOME_DIR}/www
 RUN mkdir -p ${MUPIF_HOME_DIR} && chown mupif: -R ${MUPIF_HOME_DIR}
 RUN pip3 install --prefer-binary 'numpy>=1.20' 'scipy==1.11.0'
 # install Pyro5 from git (this specific commit)
@@ -68,10 +70,13 @@ RUN cd ${MUPIF_MONITOR_DIR}; npm install; npx quasar build
 # they all use 0.0.0.0 for interface IP, thus will bind to all interfaces within the container
 COPY supervisor-mupif.conf /etc/supervisor/conf.d/mupif.conf
 COPY supervisor-monitor.conf /etc/supervisor/conf.d/monitor.conf
+COPY supervisor-schedmon.conf /etc/supervisor/conf.d/schedmon.conf
+COPY supervisor-proxy.conf /etc/supervisor/conf.d/proxy.conf
+# COPY supervisor-monitor.conf /etc/supervisor/conf.d/monitor.conf
 COPY supervisor-mupifdb-${MUPIFDB_BRANCH}.conf /etc/supervisor/conf.d/mupifdb.conf
 # make MUPIF_VPN_NAME available to supervisor
 ENV MUPIF_VPN_NAME=$MUPIF_VPN_NAME
-ENV MUPIF_PERSISTENT=/var/lib/mupif/persistent
+ENV MUPIF_PERSISTENT=${MUPIF_HOME_DIR}/persistent
 CMD ["/usr/bin/supervisord"]
 # allow to run wireguard config from the unprivileged monitor via sudo
 # the file under /etc/sudoers.d must NOT contain ., otherwise is ignored (!!) (https://superuser.com/a/869145/121677)

@@ -1,13 +1,14 @@
 #!/bin/bash
 set -e -x
+export PIP_BREAK_SYSTEM_PACKAGES=1
 main(){
-	for d in /var/lib/mupif/{mupif-git,mupifDB,monitor}; do
+	for d in /var/lib/mupif/{mupif-git,mupifDB,monitor-old}; do
 	    git -C $d pull --ff
-	    python3 -m pip install -r $d/requirements.txt
+	    python3 -m pip install -r $d/requirements.txt | grep -v 'Requirement already satisfied:' || true
 	done
-        supervisorctl restart ex13 mupifdb-REST mupifdb-web mupifdb-fastapi mupif-monitor
+        supervisorctl restart ex13 mupifdb-REST mupifdb-web mupifdb-fastapi mupif-monitor-old || true
 	sleep 2
-        supervisorctl restart mupifdb-scheduler
+        supervisorctl restart mupifdb-scheduler || true
 	sleep 3
         supervisorctl status
 }
