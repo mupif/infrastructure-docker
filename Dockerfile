@@ -65,7 +65,7 @@ RUN pip3 install -r ${MUPIF_DB_DIR}/requirements.txt
 RUN git clone --branch master https://github.com/mupif/mupif-openvpn-monitor.git ${MUPIF_MONITOR_OLD_DIR}
 RUN pip3 install --upgrade -r ${MUPIF_MONITOR_OLD_DIR}/requirements.txt
 RUN git clone --branch master https://github.com/mupif/mupif-monitor.git ${MUPIF_MONITOR_DIR}
-RUN cd ${MUPIF_MONITOR_DIR}; npm install; npx quasar build
+RUN cd ${MUPIF_MONITOR_DIR}; npm install; MUPIF_API_URL="https://${MUPIF_VPN_NAME}.mupif.org/safe-api" npx quasar build
 # declare all services run
 # they all use 0.0.0.0 for interface IP, thus will bind to all interfaces within the container
 COPY supervisor-mupif.conf /etc/supervisor/conf.d/mupif.conf
@@ -91,6 +91,7 @@ COPY wg-json_DOWNLOADED /usr/share/doc/wireguard-tools/examples/json/wg-json
 COPY etc/tmux.conf /etc/tmux.conf
 COPY etc/munin-node.conf /etc/munin/munin-node.conf
 COPY update-mupif /usr/local/bin/update-mupif
+COPY update-mupif-monitor /usr/local/bin/update-mupif-monitor
 ##
-## fix permissions to run the dev server
-RUN chown mupif: -R ${MUPIF_MONITOR_DIR}
+## fix permissions before serving the files through apache
+RUN chown mupif: -R ${MUPIF_MONITOR_DIR}/dist

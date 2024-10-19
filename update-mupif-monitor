@@ -1,0 +1,9 @@
+#!/bin/bash
+set -e -x
+MON=/var/lib/mupif/monitor
+git config --global --add safe.directory $MON
+pushd $MON
+	git pull
+	npm install
+	npx quasar build
+popd
