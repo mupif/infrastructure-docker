@@ -6,7 +6,7 @@ main(){
 	    git -C $d pull --ff
 	    python3 -m pip install -r $d/requirements.txt | grep -v 'Requirement already satisfied:' || true
 	done
-        supervisorctl restart ex13 mupifdb-REST mupifdb-web mupifdb-fastapi mupif-monitor-old || true
+        supervisorctl restart ex13 mupifdb-REST mupifdb-web mupifdb-fastapi safeapi mupif-monitor-old || true
 	sleep 2
         supervisorctl restart mupifdb-scheduler || true
 	sleep 3
